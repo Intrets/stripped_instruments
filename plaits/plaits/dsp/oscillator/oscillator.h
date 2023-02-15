@@ -87,23 +87,23 @@ class Oscillator {
 
   template<OscillatorShape shape, bool has_external_fm, bool through_zero_fm>
   void Render(
-      float frequency,
-      float pw,
+      float frequency0,
+      float pw0,
       const float* external_fm,
       float* out,
       size_t size) {
     
     if constexpr (!has_external_fm) {
       if constexpr (!through_zero_fm) {
-        CONSTRAIN(frequency, kMinFrequency, kMaxFrequency);
+        CONSTRAIN(frequency0, kMinFrequency, kMaxFrequency);
       } else {
-        CONSTRAIN(frequency, -kMaxFrequency, kMaxFrequency);
+        CONSTRAIN(frequency0, -kMaxFrequency, kMaxFrequency);
       }
-      CONSTRAIN(pw, fabsf(frequency) * 2.0f, 1.0f - 2.0f * fabsf(frequency))
+	  CONSTRAIN(pw0, fabsf(frequency0) * 2.0f, 1.0f - 2.0f * fabsf(frequency0));
     }
     
-    stmlib::ParameterInterpolator fm(&frequency_, frequency, size);
-    stmlib::ParameterInterpolator pwm(&pw_, pw, size);
+    stmlib::ParameterInterpolator fm(&frequency_, frequency0, size);
+    stmlib::ParameterInterpolator pwm(&pw_, pw0, size);
   
     float next_sample = next_sample_;
   
@@ -123,7 +123,7 @@ class Oscillator {
       float pw = (shape == OSCILLATOR_SHAPE_SQUARE_TRIANGLE ||
                   shape == OSCILLATOR_SHAPE_TRIANGLE) ? 0.5f : pwm.Next();
       if (has_external_fm) {
-        CONSTRAIN(pw, fabsf(frequency) * 2.0f, 1.0f - 2.0f * fabsf(frequency))
+		CONSTRAIN(pw, fabsf(frequency) * 2.0f, 1.0f - 2.0f * fabsf(frequency));
       }
       phase_ += frequency;
       

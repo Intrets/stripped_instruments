@@ -139,14 +139,14 @@ class AdditiveSawOscillator {
   }
 
   inline void Render(
-      float frequency,
+      float frequency0,
       float level,
       float* out,
       size_t size) {
-    if (frequency >= kMaxFrequency) {
-      frequency = kMaxFrequency;
+    if (frequency0 >= kMaxFrequency) {
+      frequency0 = kMaxFrequency;
     }
-    stmlib::ParameterInterpolator fm(&frequency_, frequency, size);
+    stmlib::ParameterInterpolator fm(&frequency_, frequency0, size);
     stmlib::ParameterInterpolator gain(&gain_, level, size);
 
     float next_sample = next_sample_;

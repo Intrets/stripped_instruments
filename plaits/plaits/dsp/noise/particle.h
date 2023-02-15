@@ -65,9 +65,9 @@ class Particle {
       if (u <= density) {
         s = u * gain;
         if (can_radomize_frequency) {
-          const float u = 2.0f * stmlib::Random::GetFloat() - 1.0f;
+          const float u2 = 2.0f * stmlib::Random::GetFloat() - 1.0f;
           const float f = std::min(
-              stmlib::SemitonesToRatio(spread * u) * frequency,
+              stmlib::SemitonesToRatio(spread * u2) * frequency,
               0.25f);
           pre_gain_ = 0.5f / stmlib::Sqrt(q * f * stmlib::Sqrt(density));
           filter_.set_f_q<stmlib::FREQUENCY_DIRTY>(f, q);

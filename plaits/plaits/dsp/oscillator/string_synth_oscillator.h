@@ -64,20 +64,20 @@ class StringSynthOscillator {
   }
   
   inline void Render(
-      float frequency,
+      float frequency0,
       const float* unshifted_registration,
       float gain,
       float* out,
       size_t size) {
-    frequency *= 8.0f;
+    frequency0 *= 8.0f;
     
     // Deal with very high frequencies by shifting everything 1 or 2 octave
     // down: Instead of playing the 1st harmonic of a 8kHz wave, we play the
     // 2nd harmonic of a 4kHz wave.
     size_t shift = 0;
-    while (frequency > 0.5f) {
+    while (frequency0 > 0.5f) {
       shift += 2;
-      frequency *= 0.5f;
+      frequency0 *= 0.5f;
     }
     // Frequency is just too high.
     if (shift >= 8) {
@@ -91,7 +91,7 @@ class StringSynthOscillator {
         &unshifted_registration[7 - shift],
         &registration[shift]);
     
-    stmlib::ParameterInterpolator fm(&frequency_, frequency, size);
+    stmlib::ParameterInterpolator fm(&frequency_, frequency0, size);
     stmlib::ParameterInterpolator saw_8_gain_modulation(
         &saw_8_gain_,
         (registration[0] + 2.0f * registration[1]) * gain,

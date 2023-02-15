@@ -28,6 +28,8 @@
 #include <inttypes.h>
 #include <stddef.h>
 
+#include <crack/audio/MathContext.h>
+
 #ifndef NULL
 #define NULL 0
 #endif
@@ -38,13 +40,7 @@
 
 #define CLIP(x) if (x < -32767) x = -32767; if (x > 32767) x = 32767;
 
-#define CONSTRAIN(var, min, max) \
-  if (var < (min)) { \
-    var = (min); \
-  } else if (var > (max)) { \
-    var = (max); \
-  }
-
+#define CONSTRAIN(var, min, max) var = crack::audio::StdContext::clamp(var, min, max)
 
 #define JOIN(lhs, rhs)    JOIN_1(lhs, rhs)
 #define JOIN_1(lhs, rhs)  JOIN_2(lhs, rhs)

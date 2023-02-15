@@ -48,10 +48,10 @@ class ClockedNoise {
     frequency_ = 0.001f;
   }
 
-  void Render(bool sync, float frequency, float* out, size_t size) {
-    CONSTRAIN(frequency, 0.0f, 1.0f);
+  void Render(bool sync, float frequency0, float* out, size_t size) {
+    CONSTRAIN(frequency0, 0.0f, 1.0f);
     
-    stmlib::ParameterInterpolator fm(&frequency_, frequency, size);
+    stmlib::ParameterInterpolator fm(&frequency_, frequency0, size);
 
     float next_sample = next_sample_;
     float sample = sample_;

@@ -58,25 +58,25 @@ class VariableSawOscillator {
   }
   
   void Render(
-      float frequency,
-      float pw,
-      float waveshape,
+      float frequency0,
+      float pw0,
+      float waveshape0,
       float* out,
       size_t size) {
-    if (frequency >= kMaxFrequency) {
-      frequency = kMaxFrequency;
+    if (frequency0 >= kMaxFrequency) {
+      frequency0 = kMaxFrequency;
     }
     
-    if (frequency >= 0.25f) {
-      pw = 0.5f;
+    if (frequency0 >= 0.25f) {
+      pw0 = 0.5f;
     } else {
-      CONSTRAIN(pw, frequency * 2.0f, 1.0f - 2.0f * frequency);
+      CONSTRAIN(pw0, frequency0 * 2.0f, 1.0f - 2.0f * frequency0);
     }
 
-    stmlib::ParameterInterpolator fm(&frequency_, frequency, size);
-    stmlib::ParameterInterpolator pwm(&pw_, pw, size);
+    stmlib::ParameterInterpolator fm(&frequency_, frequency0, size);
+    stmlib::ParameterInterpolator pwm(&pw_, pw0, size);
     stmlib::ParameterInterpolator waveshape_modulation(
-        &waveshape_, waveshape, size);
+        &waveshape_, waveshape0, size);
 
     float next_sample = next_sample_;
     
