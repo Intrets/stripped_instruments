@@ -122,7 +122,7 @@ namespace stmlib
 	}
 
 	inline uint16_t ClipU16(int32_t x) {
-		return clamp_i32(x, 0, 65535);
+		return static_cast<uint16_t>(clamp_i32(x, 0, 65535));
 	}
 
 	inline float Sqrt(float x) {

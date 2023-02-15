@@ -40,14 +40,14 @@ namespace stmlib {
 static inline uint16_t fast_atan2(float y, float x) {
   static const uint32_t sign_mask = 0x80000000;
   static const float b = 0.596227f;
-  uint32_t ux_s = sign_mask & unsafe_bit_cast<uint32_t, float>(x);
-  uint32_t uy_s = sign_mask & unsafe_bit_cast<uint32_t, float>(y);
+  uint32_t ux_s = sign_mask & std::bit_cast<uint32_t, float>(x);
+  uint32_t uy_s = sign_mask & std::bit_cast<uint32_t, float>(y);
   uint32_t offset = ((~ux_s & uy_s) >> 29 | ux_s >> 30) << 14;
   float bxy_a = fabs(b * x * y);
   float num = bxy_a + y * y;
   float atan_1q = num / (x * x + bxy_a + num);
-  uint32_t uatan_2q = (ux_s ^ uy_s) | unsafe_bit_cast<uint32_t, float>(atan_1q);
-  return unsafe_bit_cast<float, uint32_t>(uatan_2q) * 16384 + offset;
+  uint32_t uatan_2q = (ux_s ^ uy_s) | std::bit_cast<uint32_t, float>(atan_1q);
+  return std::bit_cast<float, uint32_t>(uatan_2q) * 16384 + offset;
 } 
 
 extern const uint16_t atan_lut[513];
@@ -62,8 +62,8 @@ static inline uint16_t fast_atan2r(float y, float x, float* r) {
   *r = rinv * squared_magnitude;
 
   static const uint32_t sign_mask = 0x80000000;
-  uint32_t ux_s = sign_mask & unsafe_bit_cast<uint32_t, float>(x);
-  uint32_t uy_s = sign_mask & unsafe_bit_cast<uint32_t, float>(y);
+  uint32_t ux_s = sign_mask & std::bit_cast<uint32_t, float>(x);
+  uint32_t uy_s = sign_mask & std::bit_cast<uint32_t, float>(y);
   uint32_t quadrant = ((~ux_s & uy_s) >> 29 | ux_s >> 30);
   uint16_t angle = 0;
   x = fabs(x);
