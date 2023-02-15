@@ -49,8 +49,8 @@ void LPCSpeechSynth::Init() {
   next_sample_ = 0.0f;
   excitation_pulse_sample_index_ = 0;
 
-  fill(&k_[0], &k_[kLPCOrder], 0);
-  fill(&s_[0], &s_[kLPCOrder + 1], 0);
+  fill(&k_[0], &k_[kLPCOrder], 0.0f);
+  fill(&s_[0], &s_[kLPCOrder + 1], 0.0f);
 }
 
 void LPCSpeechSynth::Render(

@@ -48,7 +48,7 @@ class CosineOscillator {
 
   template<CosineOscillatorMode mode>
   inline void Init(float frequency) {
-    if (mode == COSINE_OSCILLATOR_APPROXIMATE) {
+    if constexpr (mode == COSINE_OSCILLATOR_APPROXIMATE) {
       InitApproximate(frequency);
     } else {
       iir_coefficient_ = 2.0f * cosf(2.0f * float(M_PI) * frequency);

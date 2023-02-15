@@ -105,15 +105,15 @@ class OnePole {
   
   template<FrequencyApproximation approximation>
   static inline float tan(float f) {
-    if (approximation == FREQUENCY_EXACT) {
+    if constexpr (approximation == FREQUENCY_EXACT) {
       // Clip coefficient to about 100.
       f = f < 0.497f ? f : 0.497f;
       return tanf(M_PI_F * f);
-    } else if (approximation == FREQUENCY_DIRTY) {
+    } else if constexpr (approximation == FREQUENCY_DIRTY) {
       // Optimized for frequencies below 8kHz.
       const float a = 3.736e-01f * M_PI_POW_3;
       return f * (M_PI_F + a * f * f);
-    } else if (approximation == FREQUENCY_FAST) {
+    } else if constexpr (approximation == FREQUENCY_FAST) {
       // The usual tangent approximation uses 3.1755e-01 and 2.033e-01, but
       // the coefficients used here are optimized to minimize error for the
       // 16Hz to 16kHz range, with a sample rate of 48kHz.
@@ -121,7 +121,7 @@ class OnePole {
       const float b = 1.823e-01f * M_PI_POW_5;
       float f2 = f * f;
       return f * (M_PI_F + f2 * (a + b * f2));
-    } else if (approximation == FREQUENCY_ACCURATE) {
+    } else if constexpr (approximation == FREQUENCY_ACCURATE) {
       // These coefficients don't need to be tweaked for the audio range.
       const float a = 3.333314036e-01f * M_PI_POW_3;
       const float b = 1.333923995e-01f * M_PI_POW_5;
@@ -147,9 +147,9 @@ class OnePole {
     lp = (g_ * in + state_) * gi_;
     state_ = g_ * (in - lp) + lp;
 
-    if (mode == FILTER_MODE_LOW_PASS) {
+    if constexpr (mode == FILTER_MODE_LOW_PASS) {
       return lp;
-    } else if (mode == FILTER_MODE_HIGH_PASS) {
+    } else if constexpr (mode == FILTER_MODE_HIGH_PASS) {
       return in - lp;
     } else {
       return 0.0f;
@@ -235,13 +235,13 @@ class Svf {
     lp = g_ * bp + state_2_;
     state_2_ = g_ * bp + lp;
     
-    if (mode == FILTER_MODE_LOW_PASS) {
+    if constexpr (mode == FILTER_MODE_LOW_PASS) {
       return lp;
-    } else if (mode == FILTER_MODE_BAND_PASS) {
+    } else if constexpr (mode == FILTER_MODE_BAND_PASS) {
       return bp;
-    } else if (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
+    } else if constexpr (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
       return bp * r_;
-    } else if (mode == FILTER_MODE_HIGH_PASS) {
+    } else if constexpr (mode == FILTER_MODE_HIGH_PASS) {
       return hp;
     }
   }
@@ -255,23 +255,23 @@ class Svf {
     lp = g_ * bp + state_2_;
     state_2_ = g_ * bp + lp;
     
-    if (mode_1 == FILTER_MODE_LOW_PASS) {
+    if constexpr (mode_1 == FILTER_MODE_LOW_PASS) {
       *out_1 = lp;
-    } else if (mode_1 == FILTER_MODE_BAND_PASS) {
+    } else if constexpr (mode_1 == FILTER_MODE_BAND_PASS) {
       *out_1 = bp;
-    } else if (mode_1 == FILTER_MODE_BAND_PASS_NORMALIZED) {
+    } else if constexpr (mode_1 == FILTER_MODE_BAND_PASS_NORMALIZED) {
       *out_1 = bp * r_;
-    } else if (mode_1 == FILTER_MODE_HIGH_PASS) {
+    } else if constexpr (mode_1 == FILTER_MODE_HIGH_PASS) {
       *out_1 = hp;
     }
 
-    if (mode_2 == FILTER_MODE_LOW_PASS) {
+    if constexpr (mode_2 == FILTER_MODE_LOW_PASS) {
       *out_2 = lp;
-    } else if (mode_2 == FILTER_MODE_BAND_PASS) {
+    } else if constexpr (mode_2 == FILTER_MODE_BAND_PASS) {
       *out_2 = bp;
-    } else if (mode_2 == FILTER_MODE_BAND_PASS_NORMALIZED) {
+    } else if constexpr (mode_2 == FILTER_MODE_BAND_PASS_NORMALIZED) {
       *out_2 = bp * r_;
-    } else if (mode_2 == FILTER_MODE_HIGH_PASS) {
+    } else if constexpr (mode_2 == FILTER_MODE_HIGH_PASS) {
       *out_2 = hp;
     }
   }
@@ -290,13 +290,13 @@ class Svf {
       state_2 = g_ * bp + lp;
     
       float value;
-      if (mode == FILTER_MODE_LOW_PASS) {
+      if constexpr (mode == FILTER_MODE_LOW_PASS) {
         value = lp;
-      } else if (mode == FILTER_MODE_BAND_PASS) {
+      } else if constexpr (mode == FILTER_MODE_BAND_PASS) {
         value = bp;
-      } else if (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
+      } else if constexpr (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
         value = bp * r_;
-      } else if (mode == FILTER_MODE_HIGH_PASS) {
+      } else if constexpr (mode == FILTER_MODE_HIGH_PASS) {
         value = hp;
       }
       
@@ -322,13 +322,13 @@ class Svf {
       state_2 = g_ * bp + lp;
     
       float value;
-      if (mode == FILTER_MODE_LOW_PASS) {
+      if constexpr (mode == FILTER_MODE_LOW_PASS) {
         value = lp;
-      } else if (mode == FILTER_MODE_BAND_PASS) {
+      } else if constexpr (mode == FILTER_MODE_BAND_PASS) {
         value = bp;
-      } else if (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
+      } else if constexpr (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
         value = bp * r_;
-      } else if (mode == FILTER_MODE_HIGH_PASS) {
+      } else if constexpr (mode == FILTER_MODE_HIGH_PASS) {
         value = hp;
       }
       
@@ -354,13 +354,13 @@ class Svf {
       state_2 = g_ * bp + lp;
     
       float value;
-      if (mode == FILTER_MODE_LOW_PASS) {
+      if constexpr (mode == FILTER_MODE_LOW_PASS) {
         value = lp;
-      } else if (mode == FILTER_MODE_BAND_PASS) {
+      } else if constexpr (mode == FILTER_MODE_BAND_PASS) {
         value = bp;
-      } else if (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
+      } else if constexpr (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
         value = bp * r_;
-      } else if (mode == FILTER_MODE_HIGH_PASS) {
+      } else if constexpr (mode == FILTER_MODE_HIGH_PASS) {
         value = hp;
       }
       
@@ -438,13 +438,13 @@ class Svf {
       state_2 = g_ * bp + lp;
     
       float value;
-      if (mode == FILTER_MODE_LOW_PASS) {
+      if constexpr (mode == FILTER_MODE_LOW_PASS) {
         value = lp;
-      } else if (mode == FILTER_MODE_BAND_PASS) {
+      } else if constexpr (mode == FILTER_MODE_BAND_PASS) {
         value = bp;
-      } else if (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
+      } else if constexpr (mode == FILTER_MODE_BAND_PASS_NORMALIZED) {
         value = bp * r_;
-      } else if (mode == FILTER_MODE_HIGH_PASS) {
+      } else if constexpr (mode == FILTER_MODE_HIGH_PASS) {
         value = hp;
       }
       
@@ -494,7 +494,7 @@ class NaiveSvf {
   // are available to avoid the cost of sinf.
   template<FrequencyApproximation approximation>
   inline void set_f_q(float f, float resonance) {
-    if (approximation == FREQUENCY_EXACT) {
+    if constexpr (approximation == FREQUENCY_EXACT) {
       f = f < 0.497f ? f : 0.497f;
       f_ = 2.0f * sinf(M_PI_F * f);
     } else {

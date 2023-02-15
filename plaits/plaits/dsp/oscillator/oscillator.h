@@ -93,8 +93,8 @@ class Oscillator {
       float* out,
       size_t size) {
     
-    if (!has_external_fm) {
-      if (!through_zero_fm) {
+    if constexpr (!has_external_fm) {
+      if constexpr (!through_zero_fm) {
         CONSTRAIN(frequency, kMinFrequency, kMaxFrequency);
       } else {
         CONSTRAIN(frequency, -kMaxFrequency, kMaxFrequency);
@@ -127,39 +127,44 @@ class Oscillator {
       }
       phase_ += frequency;
       
-      if (shape <= OSCILLATOR_SHAPE_SAW) {
+      if constexpr (shape <= OSCILLATOR_SHAPE_SAW) {
         if (phase_ >= 1.0f) {
           phase_ -= 1.0f;
           float t = phase_ / frequency;
           this_sample -= stmlib::ThisBlepSample(t);
           next_sample -= stmlib::NextBlepSample(t);
-        } else if (through_zero_fm && phase_ < 0.0f) {
-          float t = phase_ / frequency;
-          phase_ += 1.0f;
-          this_sample += stmlib::ThisBlepSample(t);
-          next_sample += stmlib::NextBlepSample(t);
+        }
+        else if constexpr (through_zero_fm) {
+          if (phase_ < 0.0f) {
+            float t = phase_ / frequency;
+            phase_ += 1.0f;
+            this_sample += stmlib::ThisBlepSample(t);
+            next_sample += stmlib::NextBlepSample(t);
+          }
         }
         next_sample += phase_;
 
-        if (shape == OSCILLATOR_SHAPE_SAW) {
+        if constexpr (shape == OSCILLATOR_SHAPE_SAW) {
           *out++ = 2.0f * this_sample - 1.0f;
         } else {
           lp_state_ += 0.25f * ((hp_state_ - this_sample) - lp_state_);
           *out++ = 4.0f * lp_state_;
           hp_state_ = this_sample;
         }
-      } else if (shape <= OSCILLATOR_SHAPE_SLOPE) {
+      } else if constexpr (shape <= OSCILLATOR_SHAPE_SLOPE) {
         float slope_up = 2.0f;
         float slope_down = 2.0f;
-        if (shape == OSCILLATOR_SHAPE_SLOPE) {
+        if constexpr (shape == OSCILLATOR_SHAPE_SLOPE) {
           slope_up = 1.0f / (pw);
           slope_down = 1.0f / (1.0f - pw);
         }
-        if (high_ ^ (phase_ < pw)) {
+        if (high_ != (phase_ < pw)) {
           float t = (phase_ - pw) / frequency;
           float discontinuity = (slope_up + slope_down) * frequency;
-          if (through_zero_fm && frequency < 0.0f) {
-            discontinuity = -discontinuity;
+          if constexpr (through_zero_fm) {
+            if (frequency < 0.0f) {
+              discontinuity = -discontinuity;
+            }
           }
           this_sample -= stmlib::ThisIntegratedBlepSample(t) * discontinuity;
           next_sample -= stmlib::NextIntegratedBlepSample(t) * discontinuity;
@@ -185,11 +190,13 @@ class Oscillator {
           : 1.0f - (phase_ - pw) * slope_down;
         *out++ = 2.0f * this_sample - 1.0f;
       } else {
-        if (high_ ^ (phase_ >= pw)) {
+        if (high_ != (phase_ >= pw)) {
           float t = (phase_ - pw) / frequency;
           float discontinuity = 1.0f;
-          if (through_zero_fm && frequency < 0.0f) {
-            discontinuity = -discontinuity;
+          if constexpr (through_zero_fm) {
+            if (frequency < 0.0f) {
+              discontinuity = -discontinuity;
+            }
           }
           this_sample += stmlib::ThisBlepSample(t) * discontinuity;
           next_sample += stmlib::NextBlepSample(t) * discontinuity;
@@ -201,26 +208,28 @@ class Oscillator {
           this_sample -= stmlib::ThisBlepSample(t);
           next_sample -= stmlib::NextBlepSample(t);
           high_ = false;
-        } else if (through_zero_fm && phase_ < 0.0f) {
-          float t = phase_ / frequency;
-          phase_ += 1.0f;
-          this_sample += stmlib::ThisBlepSample(t);
-          next_sample += stmlib::NextBlepSample(t);
-          high_ = true;
+        } else if constexpr (through_zero_fm) {
+          if (phase_ < 0.0f) {
+            float t = phase_ / frequency;
+            phase_ += 1.0f;
+            this_sample += stmlib::ThisBlepSample(t);
+            next_sample += stmlib::NextBlepSample(t);
+            high_ = true;
+          }
         }
         next_sample += phase_ < pw ? 0.0f : 1.0f;
         
-        if (shape == OSCILLATOR_SHAPE_SQUARE_TRIANGLE) {
+        if constexpr (shape == OSCILLATOR_SHAPE_SQUARE_TRIANGLE) {
           const float integrator_coefficient = frequency * 0.0625f;
           this_sample = 128.0f * (this_sample - 0.5f);
           lp_state_ += integrator_coefficient * (this_sample - lp_state_);
           *out++ = lp_state_;
-        } else if (shape == OSCILLATOR_SHAPE_SQUARE_DARK) {
+        } else if constexpr (shape == OSCILLATOR_SHAPE_SQUARE_DARK) {
           const float integrator_coefficient = frequency * 2.0f;
           this_sample = 4.0f * (this_sample - 0.5f);
           lp_state_ += integrator_coefficient * (this_sample - lp_state_);
           *out++ = lp_state_;
-        } else if (shape == OSCILLATOR_SHAPE_SQUARE_BRIGHT) {
+        } else if constexpr (shape == OSCILLATOR_SHAPE_SQUARE_BRIGHT) {
           const float integrator_coefficient = frequency * 2.0f;
           this_sample = 2.0f * this_sample - 1.0f;
           lp_state_ += integrator_coefficient * (this_sample - lp_state_);

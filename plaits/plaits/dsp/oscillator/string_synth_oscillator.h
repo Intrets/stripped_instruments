@@ -54,7 +54,7 @@ class StringSynthOscillator {
   inline void Init() {
     phase_ = 0.0f;
     next_sample_ = 0.0f;
-    segment_ = 0.0f;
+    segment_ = 0;
     
     frequency_ = 0.001f;
     saw_8_gain_ = 0.0f;

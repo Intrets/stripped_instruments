@@ -160,8 +160,8 @@ class SyntheticBassDrum {
     if (trigger) {
       fm_ = 1.0f;
       body_env_ = transient_env_ = 0.3f + 0.7f * accent;
-      body_env_pulse_width_ = kSampleRate * 0.001f;
-      fm_pulse_width_ = kSampleRate * 0.0013f;
+      body_env_pulse_width_ = static_cast<int>(kSampleRate * 0.001f);
+      fm_pulse_width_ = static_cast<int>(kSampleRate * 0.0013f);
     }
     
     stmlib::ParameterInterpolator sustain_gain(

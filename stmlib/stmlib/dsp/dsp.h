@@ -117,8 +117,8 @@ namespace stmlib
 		return std::max(std::min(x, max), min);
 	}
 
-	inline int32_t Clip16(int32_t x) {
-		return clamp_i32(x, -32768, 32767);
+	inline int16_t Clip16(int32_t x) {
+		return static_cast<int16_t>(clamp_i32(x, -32768, 32767));
 	}
 
 	inline uint16_t ClipU16(int32_t x) {
