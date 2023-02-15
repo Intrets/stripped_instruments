@@ -24,3 +24,5 @@ target_include_directories(${MODULE_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_definitions(${MODULE_NAME} PUBLIC TEST)
 target_compile_definitions(${MODULE_NAME} PUBLIC M_PI=3.141592653589793)
+
+target_link_libraries(${MODULE_NAME} PUBLIC crack)
