@@ -30,7 +30,6 @@
 #define PLAITS_DSP_NOISE_SMOOTH_RANDOM_GENERATOR_H_
 
 #include "stmlib/stmlib.h"
-#include "stmlib/utils/random.h"
 
 namespace plaits {
 

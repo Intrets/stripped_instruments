@@ -38,6 +38,8 @@
 
 #include "plaits/dsp/physical_modelling/delay_line.h"
 
+#include <crack/audio/Random.h>
+
 namespace plaits {
 
 const size_t kDelayLineSize = 1024;
@@ -83,6 +85,8 @@ class String {
   float delay_;
   float dispersion_noise_;
   float curved_bridge_;
+
+  crack::audio::RNG rng{};
   
   // Very crappy linear interpolation upsampler used for low pitches that
   // do not fit the delay line. Rarely used.

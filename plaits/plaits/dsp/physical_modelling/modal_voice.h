@@ -35,6 +35,8 @@
 
 #include "plaits/dsp/physical_modelling/resonator.h"
 
+#include <crack/audio/Random.h>
+
 namespace plaits {
 
 class ModalVoice {
@@ -59,6 +61,8 @@ class ModalVoice {
  private:
   ResonatorSvf<1> excitation_filter_;
   Resonator resonator_;
+
+  crack::audio::RNG rng{};
   
   DISALLOW_COPY_AND_ASSIGN(ModalVoice);
 };

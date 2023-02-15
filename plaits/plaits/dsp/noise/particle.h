@@ -31,7 +31,8 @@
 
 #include "stmlib/dsp/dsp.h"
 #include "stmlib/dsp/filter.h"
-#include "stmlib/utils/random.h"
+
+#include <crack/audio/Random.h>
 
 namespace plaits {
 
@@ -55,7 +56,7 @@ class Particle {
       float* out,
       float* aux,
       size_t size) {
-    float u = stmlib::Random::GetFloat();
+    float u = this->rng.get(0.0f, 1.0f);
     if (sync) {
       u = density;
     }
@@ -65,7 +66,7 @@ class Particle {
       if (u <= density) {
         s = u * gain;
         if (can_radomize_frequency) {
-          const float u2 = 2.0f * stmlib::Random::GetFloat() - 1.0f;
+          const float u2 = this->rng.get(-1.0f, 1.0f);
           const float f = std::min(
               stmlib::SemitonesToRatio(spread * u2) * frequency,
               0.25f);
@@ -77,13 +78,15 @@ class Particle {
       }
       *aux++ += s;
       *out++ += filter_.Process<stmlib::FILTER_MODE_BAND_PASS>(pre_gain_ * s);
-      u = stmlib::Random::GetFloat();
+      u = this->rng.get(0.0f, 1.0f);
     }
   }
  
  private:
   float pre_gain_;
   stmlib::Svf filter_;
+
+  crack::audio::RNG rng{};
   
   DISALLOW_COPY_AND_ASSIGN(Particle);
 };

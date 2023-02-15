@@ -31,13 +31,14 @@
 
 #include "stmlib/dsp/polyblep.h"
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/dsp/engine/engine.h"
 #include "plaits/dsp/oscillator/oscillator.h"
 #include "plaits/dsp/oscillator/string_synth_oscillator.h"
 #include "plaits/dsp/oscillator/sine_oscillator.h"
 #include "plaits/resources.h"
+
+#include <crack/audio/Random.h>
 
 namespace plaits {
 
@@ -73,12 +74,12 @@ class GrainEnvelope {
     
     if (randomize) {
       from_ += interval_;
-      interval_ = stmlib::Random::GetFloat() - from_;
+      interval_ = this->rng.get(0.0f, 1.0f) - from_;
       // Randomize the duration of the grain.
       if (burst_mode) {
-        fm_ *= 0.8f + 0.2f * stmlib::Random::GetFloat();
+        fm_ *= 0.8f + this->rng.get(0.0f, 0.2f);
       } else {
-        fm_ = 0.5f + 1.5f * stmlib::Random::GetFloat();
+        fm_ = 0.5f + this->rng.get(0.0f, 1.5f);
       }
     }
   }
@@ -122,6 +123,8 @@ class GrainEnvelope {
   float amplitude_;
   float previous_size_ratio_;
   float filter_coefficient_;
+
+  crack::audio::RNG rng{};
   
   DISALLOW_COPY_AND_ASSIGN(GrainEnvelope);
 };

@@ -32,7 +32,8 @@
 #include "stmlib/dsp/dsp.h"
 #include "stmlib/dsp/parameter_interpolator.h"
 #include "stmlib/dsp/polyblep.h"
-#include "stmlib/utils/random.h"
+
+#include <crack/audio/Random.h>
 
 namespace plaits {
 
@@ -65,7 +66,7 @@ class ClockedNoise {
       next_sample = 0.0f;
 
       const float frequency = fm.Next();
-      const float raw_sample = stmlib::Random::GetFloat() * 2.0f - 1.0f;
+      const float raw_sample = this->rng.get(-1.0f, 1.0f);
       float raw_amount = 4.0f * (frequency - 0.25f);
       CONSTRAIN(raw_amount, 0.0f, 1.0f);
       
@@ -95,6 +96,8 @@ class ClockedNoise {
 
   // For interpolation of parameters.
   float frequency_;
+
+  crack::audio::RNG rng{};
   
   DISALLOW_COPY_AND_ASSIGN(ClockedNoise);
 };

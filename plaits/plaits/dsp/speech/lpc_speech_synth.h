@@ -33,6 +33,8 @@
 
 #include "plaits/dsp/dsp.h"
 
+#include <crack/audio/Random.h>
+
 namespace plaits {
 
 const int kLPCOrder = 10;
@@ -101,6 +103,8 @@ class LPCSpeechSynth {
 
   float k_[kLPCOrder];
   float s_[kLPCOrder + 1];
+
+  crack::audio::RNG rng{};
 
   DISALLOW_COPY_AND_ASSIGN(LPCSpeechSynth);
 };

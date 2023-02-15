@@ -33,7 +33,6 @@
 #include "stmlib/dsp/dsp.h"
 #include "stmlib/dsp/parameter_interpolator.h"
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/dsp/dsp.h"
 #include "plaits/resources.h"
@@ -146,7 +145,7 @@ void String::ProcessInternal(
       float s = 0.0f;
       
       if (non_linearity == STRING_NON_LINEARITY_DISPERSION) {
-        float noise = Random::GetFloat() - 0.5f;
+        float noise = this->rng.get(-0.5f, 0.5f);
         ONE_POLE(dispersion_noise_, noise, noise_filter)
         delay *= 1.0f + dispersion_noise_ * noise_amount;
       } else {

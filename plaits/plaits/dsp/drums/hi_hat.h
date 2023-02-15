@@ -37,10 +37,11 @@
 #include "stmlib/dsp/filter.h"
 #include "stmlib/dsp/parameter_interpolator.h"
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/dsp/dsp.h"
 #include "plaits/dsp/oscillator/oscillator.h"
+
+#include <crack/audio/Random.h>
 
 namespace plaits {
 
@@ -221,7 +222,7 @@ class HiHat {
       noise_clock_ += noise_f;
       if (noise_clock_ >= 1.0f) {
         noise_clock_ -= 1.0f;
-        noise_sample_ = stmlib::Random::GetFloat() - 0.5f;
+        noise_sample_ = this->rng.get(-0.5f, 0.5f);
       }
       out[i] += noisiness * (noise_sample_ - out[i]);
     }
@@ -246,6 +247,8 @@ class HiHat {
   float noise_clock_;
   float noise_sample_;
   float sustain_gain_;
+
+  crack::audio::RNG rng{};
 
   MetallicNoiseSource metallic_noise_;
   stmlib::Svf noise_coloration_svf_;

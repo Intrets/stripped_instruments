@@ -33,7 +33,6 @@
 
 #include "stmlib/dsp/dsp.h"
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/resources.h"
 

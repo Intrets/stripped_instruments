@@ -35,7 +35,6 @@
 #include <algorithm>
 
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/dsp/noise/dust.h"
 
@@ -77,7 +76,7 @@ void ModalVoice::Render(
   if (sustain) {
     const float dust_f = 0.00005f + 0.99995f * density * density;
     for (size_t i = 0; i < size; ++i) {
-      temp[i] = Dust(dust_f) * (4.0f - dust_f * 3.0f) * accent;
+      temp[i] = Dust(this->rng, dust_f) * (4.0f - dust_f * 3.0f) * accent;
     }
   } else {
     fill(&temp[0], &temp[size], 0.0f);

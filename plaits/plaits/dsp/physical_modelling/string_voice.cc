@@ -31,7 +31,6 @@
 #include <algorithm>
 
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/dsp/noise/dust.h"
 
@@ -82,7 +81,7 @@ void StringVoice::Render(
   if (sustain) {
     const float dust_f = 0.00005f + 0.99995f * density * density;
     for (size_t i = 0; i < size; ++i) {
-      temp[i] = Dust(dust_f) * (8.0f - dust_f * 6.0f) * accent;
+      temp[i] = Dust(this->rng, dust_f) * (8.0f - dust_f * 6.0f) * accent;
     }
   } else if (remaining_noise_samples_) {
     size_t noise_samples = min(remaining_noise_samples_, size);
@@ -90,7 +89,7 @@ void StringVoice::Render(
     size_t tail = size - noise_samples;
     float* start = temp;
     while (noise_samples--) {
-      *start++ = 2.0f * Random::GetFloat() - 1.0f;
+      *start++ = this->rng.get(-1.0f, 1.0f);
     }
     while (tail--) {
       *start++ = 0.0f;

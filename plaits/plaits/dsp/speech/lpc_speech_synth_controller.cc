@@ -31,7 +31,6 @@
 #include <algorithm>
 
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/dsp/oscillator/oscillator.h"
 

@@ -30,15 +30,17 @@
 #define PLAITS_DSP_DRUMS_ANALOG_SNARE_DRUM_H_
 
 #include <algorithm>
+#include <random>
 
 #include "stmlib/dsp/dsp.h"
 #include "stmlib/dsp/filter.h"
 #include "stmlib/dsp/parameter_interpolator.h"
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/dsp/dsp.h"
 #include "plaits/dsp/oscillator/sine_oscillator.h"
+
+#include <crack/audio/Random.h>
 
 namespace plaits {
 
@@ -166,7 +168,7 @@ class AnalogSnareDrum {
       shell = stmlib::SoftClip(shell);
       
       // C56 / R194 / Q48 / C54 / R188 / D54
-      float noise = 2.0f * stmlib::Random::GetFloat() - 1.0f;
+      float noise = this->rng.get(-1.0f, 1.0f);
       if (noise < 0.0f) noise = 0.0f;
       noise_envelope_ *= noise_envelope_decay;
       noise *= (sustain ? sustain_gain_value : noise_envelope_) * snappy * 2.0f;
@@ -186,6 +188,8 @@ class AnalogSnareDrum {
   float pulse_lp_;
   float noise_envelope_;
   float sustain_gain_;
+
+  crack::audio::RNG rng{};
   
   stmlib::Svf resonator_[kNumModes];
   stmlib::Svf noise_filter_;

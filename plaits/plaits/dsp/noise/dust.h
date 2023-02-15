@@ -29,13 +29,13 @@
 #ifndef PLAITS_DSP_NOISE_DUST_H_
 #define PLAITS_DSP_NOISE_DUST_H_
 
-#include "stmlib/utils/random.h"
+#include <crack/audio/Random.h>
 
 namespace plaits {
 
-inline float Dust(float frequency) {
+inline float Dust(crack::audio::RNG& rng, float frequency) {
   float inv_frequency = 1.0f / frequency;
-  float u = stmlib::Random::GetFloat();
+  float u = rng.get(0.0f, 1.0f);
   if (u < frequency) {
     return u * inv_frequency;
   } else {

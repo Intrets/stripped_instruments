@@ -169,7 +169,7 @@ class SyntheticSnareDrum {
       drum *= drum_amplitude_ * drum_level;
       drum = drum_lp_.Process<stmlib::FILTER_MODE_LOW_PASS>(drum);
       
-      float noise = stmlib::Random::GetFloat();
+      float noise = this->rng.get(0.0f, 1.0f);
       float snare = snare_lp_.Process<stmlib::FILTER_MODE_LOW_PASS>(noise);
       snare = snare_hp_.Process<stmlib::FILTER_MODE_HIGH_PASS>(snare);
       snare = (snare + 0.1f) * (snare_amplitude_ + fm_) * snare_level;
@@ -189,6 +189,8 @@ class SyntheticSnareDrum {
   stmlib::OnePole drum_lp_;
   stmlib::OnePole snare_hp_;
   stmlib::Svf snare_lp_;
+
+  crack::audio::RNG rng{};
   
   DISALLOW_COPY_AND_ASSIGN(SyntheticSnareDrum);
 };

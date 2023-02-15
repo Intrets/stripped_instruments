@@ -34,6 +34,8 @@
 
 #include "plaits/dsp/physical_modelling/string.h"
 
+#include <crack/audio/Random.h>
+
 namespace plaits {
 
 class StringVoice {
@@ -60,6 +62,8 @@ class StringVoice {
   stmlib::Svf excitation_filter_;
   String string_;
   size_t remaining_noise_samples_;
+
+  crack::audio::RNG rng{};
   
   DISALLOW_COPY_AND_ASSIGN(StringVoice);
 };

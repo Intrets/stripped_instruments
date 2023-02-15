@@ -32,10 +32,11 @@
 
 #include "stmlib/dsp/dsp.h"
 #include "stmlib/dsp/units.h"
-#include "stmlib/utils/random.h"
 
 #include "plaits/dsp/dsp.h"
 #include "plaits/resources.h"
+
+#include <crack/audio/Random.h>
 
 namespace plaits {
 
@@ -76,7 +77,7 @@ class SyntheticBassDrumAttackNoise {
   }
   
   float Render() {
-    float sample = stmlib::Random::GetFloat();
+    float sample = this->rng.get(0.0f, 1.0f);
     ONE_POLE(lp_, sample, 0.05f);
     ONE_POLE(hp_, lp_, 0.005f);
     return lp_ - hp_;
@@ -85,6 +86,8 @@ class SyntheticBassDrumAttackNoise {
  private:
   float lp_;
   float hp_;
+
+  crack::audio::RNG rng{};
   
   DISALLOW_COPY_AND_ASSIGN(SyntheticBassDrumAttackNoise);
 };
@@ -170,7 +173,7 @@ class SyntheticBassDrum {
         size);
     
     while (size--) {
-      ONE_POLE(phase_noise_, stmlib::Random::GetFloat() - 0.5f, 0.002f);
+      ONE_POLE(phase_noise_, this->rng.get(-0.5f, 0.5f), 0.002f);
       
       float mix = 0.0f;
 
@@ -240,6 +243,8 @@ class SyntheticBassDrum {
   
   int body_env_pulse_width_;
   int fm_pulse_width_;
+
+  crack::audio::RNG rng{};
   
   DISALLOW_COPY_AND_ASSIGN(SyntheticBassDrum);
 };
