@@ -46,12 +46,7 @@
 #define JOIN_1(lhs, rhs)  JOIN_2(lhs, rhs)
 #define JOIN_2(lhs, rhs)  lhs##rhs
 
-#define STATIC_ASSERT(expression, message)\
-  struct JOIN(__static_assertion_at_line_, __LINE__)\
-  {\
-    impl::StaticAssertion<static_cast<bool>((expression))> JOIN(JOIN(JOIN(STATIC_ASSERTION_FAILED_AT_LINE_, __LINE__), _), message);\
-  };\
-  typedef impl::StaticAssertionTest<sizeof(JOIN(__static_assertion_at_line_, __LINE__))> JOIN(__static_assertion_test_at_line_, __LINE__)
+#define STATIC_ASSERT static_assert
 
 namespace impl {
 

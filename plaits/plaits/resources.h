@@ -63,34 +63,34 @@ extern const int16_t lut_ws_bump[];
 extern const int16_t lut_ws_double_bump[];
 extern const int8_t lut_lpc_excitation_pulse[];
 extern const int16_t wav_integrated_waves[];
-#define LUT_SINE 0
-#define LUT_SINE_SIZE 1281
-#define LUT_FM_FREQUENCY_QUANTIZER 1
-#define LUT_FM_FREQUENCY_QUANTIZER_SIZE 129
-#define LUT_FOLD 2
-#define LUT_FOLD_SIZE 516
-#define LUT_FOLD_2 3
-#define LUT_FOLD_2_SIZE 516
-#define LUT_STIFFNESS 4
-#define LUT_STIFFNESS_SIZE 65
-#define LUT_SVF_SHIFT 5
-#define LUT_SVF_SHIFT_SIZE 257
-#define LUT_WS_INVERSE_TAN 0
-#define LUT_WS_INVERSE_TAN_SIZE 257
-#define LUT_WS_INVERSE_SIN 1
-#define LUT_WS_INVERSE_SIN_SIZE 257
-#define LUT_WS_LINEAR 2
-#define LUT_WS_LINEAR_SIZE 257
-#define LUT_WS_BUMP 3
-#define LUT_WS_BUMP_SIZE 257
-#define LUT_WS_DOUBLE_BUMP 4
-#define LUT_WS_DOUBLE_BUMP_SIZE 257
-#define LUT_WS_DOUBLE_BUMP_SENTINEL 5
-#define LUT_WS_DOUBLE_BUMP_SENTINEL_SIZE 257
-#define LUT_LPC_EXCITATION_PULSE 0
-#define LUT_LPC_EXCITATION_PULSE_SIZE 640
-#define WAV_INTEGRATED_WAVES 0
-#define WAV_INTEGRATED_WAVES_SIZE 49920
+constexpr auto LUT_SINE = 0;
+constexpr auto LUT_SINE_SIZE = 1281;
+constexpr auto LUT_FM_FREQUENCY_QUANTIZER = 1;
+constexpr auto LUT_FM_FREQUENCY_QUANTIZER_SIZE = 129;
+constexpr auto LUT_FOLD = 2;
+constexpr auto LUT_FOLD_SIZE = 516;
+constexpr auto LUT_FOLD_2 = 3;
+constexpr auto LUT_FOLD_2_SIZE = 516;
+constexpr auto LUT_STIFFNESS = 4;
+constexpr auto LUT_STIFFNESS_SIZE = 65;
+constexpr auto LUT_SVF_SHIFT = 5;
+constexpr auto LUT_SVF_SHIFT_SIZE = 257;
+constexpr auto LUT_WS_INVERSE_TAN = 0;
+constexpr auto LUT_WS_INVERSE_TAN_SIZE = 257;
+constexpr auto LUT_WS_INVERSE_SIN = 1;
+constexpr auto LUT_WS_INVERSE_SIN_SIZE = 257;
+constexpr auto LUT_WS_LINEAR = 2;
+constexpr auto LUT_WS_LINEAR_SIZE = 257;
+constexpr auto LUT_WS_BUMP = 3;
+constexpr auto LUT_WS_BUMP_SIZE = 257;
+constexpr auto LUT_WS_DOUBLE_BUMP = 4;
+constexpr auto LUT_WS_DOUBLE_BUMP_SIZE = 257;
+constexpr auto LUT_WS_DOUBLE_BUMP_SENTINEL = 5;
+constexpr auto LUT_WS_DOUBLE_BUMP_SENTINEL_SIZE = 257;
+constexpr auto LUT_LPC_EXCITATION_PULSE = 0;
+constexpr auto LUT_LPC_EXCITATION_PULSE_SIZE = 640;
+constexpr auto WAV_INTEGRATED_WAVES = 0;
+constexpr auto WAV_INTEGRATED_WAVES_SIZE = 49920;
 
 }  // namespace plaits
 
