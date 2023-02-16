@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -35,73 +35,77 @@
 
 #include <crack/audio/Random.h>
 
-namespace plaits {
+namespace plaits
+{
 
-class ClockedNoise {
- public:
-  ClockedNoise() { }
-  ~ClockedNoise() { }
-  
-  void Init() {
-    phase_ = 0.0f;
-    sample_ = 0.0f;
-    next_sample_ = 0.0f;
-    frequency_ = 0.001f;
-  }
+	class ClockedNoise
+	{
+	public:
+		ClockedNoise() {
+		}
+		~ClockedNoise() {
+		}
 
-  void Render(bool sync, float frequency0, float* out, size_t size) {
-    CONSTRAIN(frequency0, 0.0f, 1.0f);
-    
-    stmlib::ParameterInterpolator fm(&frequency_, frequency0, size);
+		void Init() {
+			phase_ = 0.0f;
+			sample_ = 0.0f;
+			next_sample_ = 0.0f;
+			frequency_ = 0.001f;
+		}
 
-    float next_sample = next_sample_;
-    float sample = sample_;
-    
-    if (sync) {
-      phase_ = 1.0f;
-    }
+		void Render(bool sync, float frequency0, float* out, size_t size) {
+			CONSTRAIN(frequency0, 0.0f, 1.0f);
 
-    while (size--) {
-      float this_sample = next_sample;
-      next_sample = 0.0f;
+			stmlib::ParameterInterpolator fm(&frequency_, frequency0, size);
 
-      const float frequency = fm.Next();
-      const float raw_sample = this->rng.get(-1.0f, 1.0f);
-      float raw_amount = 4.0f * (frequency - 0.25f);
-      CONSTRAIN(raw_amount, 0.0f, 1.0f);
-      
-      phase_ += frequency;
-      
-      if (phase_ >= 1.0f) {
-        phase_ -= 1.0f;
-        float t = phase_ / frequency;
-        float new_sample = raw_sample;
-        float discontinuity = new_sample - sample;
-        this_sample += discontinuity * stmlib::ThisBlepSample(t);
-        next_sample += discontinuity * stmlib::NextBlepSample(t);
-        sample = new_sample;
-      }
-      next_sample += sample;
-      *out++ = this_sample + raw_amount * (raw_sample - this_sample);
-    }
-    next_sample_ = next_sample;
-    sample_ = sample;
-  }
-  
- private:
-  // Oscillator state.
-  float phase_;
-  float sample_;
-  float next_sample_;
+			float next_sample = next_sample_;
+			float sample = sample_;
 
-  // For interpolation of parameters.
-  float frequency_;
+			if (sync) {
+				phase_ = 1.0f;
+			}
 
-  crack::audio::RNG rng{};
-  
-  DISALLOW_COPY_AND_ASSIGN(ClockedNoise);
-};
+			while (size--) {
+				float this_sample = next_sample;
+				next_sample = 0.0f;
 
-}  // namespace plaits
+				float const frequency = fm.Next();
+				float const raw_sample = this->rng.get(-1.0f, 1.0f);
+				float raw_amount = 4.0f * (frequency - 0.25f);
+				CONSTRAIN(raw_amount, 0.0f, 1.0f);
 
-#endif  // PLAITS_DSP_NOISE_CLOCKED_NOISE_H_
+				phase_ += frequency;
+
+				if (phase_ >= 1.0f) {
+					phase_ -= 1.0f;
+					float t = phase_ / frequency;
+					float new_sample = raw_sample;
+					float discontinuity = new_sample - sample;
+					this_sample += discontinuity * stmlib::ThisBlepSample(t);
+					next_sample += discontinuity * stmlib::NextBlepSample(t);
+					sample = new_sample;
+				}
+				next_sample += sample;
+				*out++ = this_sample + raw_amount * (raw_sample - this_sample);
+			}
+			next_sample_ = next_sample;
+			sample_ = sample;
+		}
+
+	private:
+		// Oscillator state.
+		float phase_;
+		float sample_;
+		float next_sample_;
+
+		// For interpolation of parameters.
+		float frequency_;
+
+		crack::audio::RNG rng{};
+
+		DISALLOW_COPY_AND_ASSIGN(ClockedNoise);
+	};
+
+} // namespace plaits
+
+#endif // PLAITS_DSP_NOISE_CLOCKED_NOISE_H_

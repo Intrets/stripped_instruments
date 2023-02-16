@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -40,62 +40,69 @@
 
 #include <crack/audio/Random.h>
 
-namespace plaits {
+namespace plaits
+{
 
-const size_t kDelayLineSize = 1024;
+	const size_t kDelayLineSize = 1024;
 
-enum StringNonLinearity {
-  STRING_NON_LINEARITY_CURVED_BRIDGE,
-  STRING_NON_LINEARITY_DISPERSION
-};
+	enum StringNonLinearity
+	{
+		STRING_NON_LINEARITY_CURVED_BRIDGE,
+		STRING_NON_LINEARITY_DISPERSION
+	};
 
-class String {
- public:
-  String() { }
-  ~String() { }
-  
-  void Init(stmlib::BufferAllocator* allocator);
-  void Reset();
-  void Process(
-      float f0,
-      float non_linearity_amount,
-      float brightness,
-      float damping,
-      const float* in,
-      float* out,
-      size_t size);
+	class String
+	{
+	public:
+		String() {
+		}
+		~String() {
+		}
 
- private:
-  template<StringNonLinearity non_linearity>
-  void ProcessInternal(
-      float f0,
-      float non_linearity_amount,
-      float brightness,
-      float damping,
-      const float* in,
-      float* out,
-      size_t size);
-  
-  DelayLine<float, kDelayLineSize> string_;
-  DelayLine<float, kDelayLineSize / 4> stretch_;
-  
-  stmlib::Svf iir_damping_filter_;
-  stmlib::DCBlocker dc_blocker_;
-  
-  float delay_;
-  float dispersion_noise_;
-  float curved_bridge_;
+		void Init(stmlib::BufferAllocator* allocator);
+		void Reset();
+		void Process(
+		    float f0,
+		    float non_linearity_amount,
+		    float brightness,
+		    float damping,
+		    float const* in,
+		    float* out,
+		    size_t size
+		);
 
-  crack::audio::RNG rng{};
-  
-  // Very crappy linear interpolation upsampler used for low pitches that
-  // do not fit the delay line. Rarely used.
-  float src_phase_;
-  float out_sample_[2];
+	private:
+		template<StringNonLinearity non_linearity>
+		void ProcessInternal(
+		    float f0,
+		    float non_linearity_amount,
+		    float brightness,
+		    float damping,
+		    float const* in,
+		    float* out,
+		    size_t size
+		);
 
-  DISALLOW_COPY_AND_ASSIGN(String);
-};
+		DelayLine<float, kDelayLineSize> string_;
+		DelayLine<float, kDelayLineSize / 4> stretch_;
 
-}  // namespace plaits
+		stmlib::Svf iir_damping_filter_;
+		stmlib::DCBlocker dc_blocker_;
 
-#endif  // PLAITS_DSP_PHYSICAL_MODELLING_STRING_H_
+		float delay_;
+		float dispersion_noise_;
+		float curved_bridge_;
+
+		crack::audio::RNG rng{};
+
+		// Very crappy linear interpolation upsampler used for low pitches that
+		// do not fit the delay line. Rarely used.
+		float src_phase_;
+		float out_sample_[2];
+
+		DISALLOW_COPY_AND_ASSIGN(String);
+	};
+
+} // namespace plaits
+
+#endif // PLAITS_DSP_PHYSICAL_MODELLING_STRING_H_

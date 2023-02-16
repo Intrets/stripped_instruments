@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -36,38 +36,43 @@
 
 #include <crack/audio/Random.h>
 
-namespace plaits {
+namespace plaits
+{
 
-class StringVoice {
- public:
-  StringVoice() { }
-  ~StringVoice() { }
-  
-  void Init(stmlib::BufferAllocator* allocator);
-  void Reset();
-  void Render(
-      bool sustain,
-      bool trigger,
-      float accent,
-      float f0,
-      float structure,
-      float brightness,
-      float damping,
-      float* temp,
-      float* out,
-      float* aux,
-      size_t size);
-  
- private:
-  stmlib::Svf excitation_filter_;
-  String string_;
-  size_t remaining_noise_samples_;
+	class StringVoice
+	{
+	public:
+		StringVoice() {
+		}
+		~StringVoice() {
+		}
 
-  crack::audio::RNG rng{};
-  
-  DISALLOW_COPY_AND_ASSIGN(StringVoice);
-};
+		void Init(stmlib::BufferAllocator* allocator);
+		void Reset();
+		void Render(
+		    bool sustain,
+		    bool trigger,
+		    float accent,
+		    float f0,
+		    float structure,
+		    float brightness,
+		    float damping,
+		    float* temp,
+		    float* out,
+		    float* aux,
+		    size_t size
+		);
 
-}  // namespace plaits
+	private:
+		stmlib::Svf excitation_filter_;
+		String string_;
+		size_t remaining_noise_samples_;
 
-#endif  // PLAITS_DSP_PHYSICAL_STRING_VOICE_H_
+		crack::audio::RNG rng{};
+
+		DISALLOW_COPY_AND_ASSIGN(StringVoice);
+	};
+
+} // namespace plaits
+
+#endif // PLAITS_DSP_PHYSICAL_STRING_VOICE_H_

@@ -8,10 +8,10 @@
 // to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 // copies of the Software, and to permit persons to whom the Software is
 // furnished to do so, subject to the following conditions:
-// 
+//
 // The above copyright notice and this permission notice shall be included in
 // all copies or substantial portions of the Software.
-// 
+//
 // THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 // IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 // FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -19,7 +19,7 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-// 
+//
 // See http://creativecommons.org/licenses/MIT/ for more information.
 //
 // -----------------------------------------------------------------------------
@@ -34,63 +34,69 @@
 
 #include <crack/audio/Random.h>
 
-namespace plaits {
+namespace plaits
+{
 
-class Particle {
- public:
-  Particle() { }
-  ~Particle() { }
+	class Particle
+	{
+	public:
+		Particle() {
+		}
+		~Particle() {
+		}
 
-  inline void Init() {
-    pre_gain_ = 0.0f;
-    filter_.Init();
-  }
-  
-  inline void Render(
-      bool sync,
-      float density,
-      float gain,
-      float frequency,
-      float spread,
-      float q,
-      float* out,
-      float* aux,
-      size_t size) {
-    float u = this->rng.get(0.0f, 1.0f);
-    if (sync) {
-      u = density;
-    }
-    bool can_radomize_frequency = true;
-    while (size--) {
-      float s = 0.0f;
-      if (u <= density) {
-        s = u * gain;
-        if (can_radomize_frequency) {
-          const float u2 = this->rng.get(-1.0f, 1.0f);
-          const float f = std::min(
-              stmlib::SemitonesToRatio(spread * u2) * frequency,
-              0.25f);
-          pre_gain_ = 0.5f / stmlib::Sqrt(q * f * stmlib::Sqrt(density));
-          filter_.set_f_q<stmlib::FREQUENCY_DIRTY>(f, q);
-          // Keep the cutoff constant for this whole block.
-          can_radomize_frequency = false;
-        }
-      }
-      *aux++ += s;
-      *out++ += filter_.Process<stmlib::FILTER_MODE_BAND_PASS>(pre_gain_ * s);
-      u = this->rng.get(0.0f, 1.0f);
-    }
-  }
- 
- private:
-  float pre_gain_;
-  stmlib::Svf filter_;
+		inline void Init() {
+			pre_gain_ = 0.0f;
+			filter_.Init();
+		}
 
-  crack::audio::RNG rng{};
-  
-  DISALLOW_COPY_AND_ASSIGN(Particle);
-};
+		inline void Render(
+		    bool sync,
+		    float density,
+		    float gain,
+		    float frequency,
+		    float spread,
+		    float q,
+		    float* out,
+		    float* aux,
+		    size_t size
+		) {
+			float u = this->rng.get(0.0f, 1.0f);
+			if (sync) {
+				u = density;
+			}
+			bool can_radomize_frequency = true;
+			while (size--) {
+				float s = 0.0f;
+				if (u <= density) {
+					s = u * gain;
+					if (can_radomize_frequency) {
+						float const u2 = this->rng.get(-1.0f, 1.0f);
+						float const f = std::min(
+						    stmlib::SemitonesToRatio(spread * u2) * frequency,
+						    0.25f
+						);
+						pre_gain_ = 0.5f / stmlib::Sqrt(q * f * stmlib::Sqrt(density));
+						filter_.set_f_q<stmlib::FREQUENCY_DIRTY>(f, q);
+						// Keep the cutoff constant for this whole block.
+						can_radomize_frequency = false;
+					}
+				}
+				*aux++ += s;
+				*out++ += filter_.Process<stmlib::FILTER_MODE_BAND_PASS>(pre_gain_ * s);
+				u = this->rng.get(0.0f, 1.0f);
+			}
+		}
 
-}  // namespace plaits
+	private:
+		float pre_gain_;
+		stmlib::Svf filter_;
 
-#endif  // PLAITS_DSP_NOISE_PARTICLE_H_
+		crack::audio::RNG rng{};
+
+		DISALLOW_COPY_AND_ASSIGN(Particle);
+	};
+
+} // namespace plaits
+
+#endif // PLAITS_DSP_NOISE_PARTICLE_H_
