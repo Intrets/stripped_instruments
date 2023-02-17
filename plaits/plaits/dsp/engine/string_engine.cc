@@ -60,7 +60,7 @@ namespace plaits
 	    size_t size,
 	    bool* already_enveloped
 	) {
-		if (parameters.trigger & TRIGGER_RISING_EDGE) {
+		if (parameters.trigger2) {
 			// 8 in original firmware version.
 			// 05.01.18: mic.w: problem with microbrute.
 			f0_[active_string_] = f0_delay_.Read(14);
@@ -76,8 +76,8 @@ namespace plaits
 
 		for (int i = 0; i < kNumStrings; ++i) {
 			voice_[i].Render(
-			    parameters.trigger & TRIGGER_UNPATCHED && i == active_string_,
-			    parameters.trigger & TRIGGER_RISING_EDGE && i == active_string_,
+			    parameters.sustain && i == active_string_,
+			    parameters.trigger2 && i == active_string_,
 			    parameters.accent,
 			    f0_[i],
 			    parameters.harmonics,

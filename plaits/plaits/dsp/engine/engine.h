@@ -54,11 +54,14 @@ namespace plaits
 	struct EngineParameters
 	{
 		TriggerState trigger;
+		bool trigger2;
+		bool sustain;
 		float note;
 		float timbre;
 		float morph;
 		float harmonics;
 		float accent;
+		float samplePeriod;
 	};
 
 	struct PostProcessingSettings

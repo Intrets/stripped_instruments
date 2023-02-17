@@ -62,79 +62,60 @@ namespace plaits
 		}
 
 		void Render(
-		    float frequency0,
-		    float pw0,
-		    float waveshape0,
+		    float frequency,
+		    float pw,
+		    float waveshape,
 		    float* out,
 		    size_t size
 		) {
-			if (frequency0 >= kMaxFrequency) {
-				frequency0 = kMaxFrequency;
-			}
-
-			if (frequency0 >= 0.25f) {
-				pw0 = 0.5f;
-			}
-			else {
-				CONSTRAIN(pw0, frequency0 * 2.0f, 1.0f - 2.0f * frequency0);
-			}
-
-			stmlib::ParameterInterpolator fm(&frequency_, frequency0, size);
-			stmlib::ParameterInterpolator pwm(&pw_, pw0, size);
-			stmlib::ParameterInterpolator waveshape_modulation(
-			    &waveshape_, waveshape0, size
-			);
+			using math = crack::audio::StdContext;
+			pw = math::clamp(pw, frequency * 2.0f, 1.0f - 2.0f * frequency);
 
 			float next_sample = next_sample_;
 
-			while (size--) {
-				float this_sample = next_sample;
-				next_sample = 0.0f;
+			float this_sample = next_sample;
+			next_sample = 0.0f;
 
-				float const frequency = fm.Next();
-				float const pw = pwm.Next();
-				float const waveshape = waveshape_modulation.Next();
-				float const triangle_amount = waveshape;
-				float const notch_amount = 1.0f - waveshape;
-				float const slope_up = 1.0f / (pw);
-				float const slope_down = 1.0f / (1.0f - pw);
+			float const triangle_amount = waveshape;
+			float const notch_amount = 1.0f - waveshape;
+			float const slope_up = 1.0f / (pw);
+			float const slope_down = 1.0f / (1.0f - pw);
 
-				phase_ += frequency;
+			phase_ += frequency;
 
-				if (!high_ && phase_ >= pw) {
-					float const triangle_step = (slope_up + slope_down) * frequency * triangle_amount;
-					float const notch = (kVariableSawNotchDepth + 1.0f - pw) * notch_amount;
-					float const t = (phase_ - pw) / (previous_pw_ - pw + frequency);
-					this_sample += notch * stmlib::ThisBlepSample(t);
-					next_sample += notch * stmlib::NextBlepSample(t);
-					this_sample -= triangle_step * stmlib::ThisIntegratedBlepSample(t);
-					next_sample -= triangle_step * stmlib::NextIntegratedBlepSample(t);
-					high_ = true;
-				}
-				else if (phase_ >= 1.0f) {
-					phase_ -= 1.0f;
-					float const triangle_step = (slope_up + slope_down) * frequency * triangle_amount;
-					float const notch = (kVariableSawNotchDepth + 1.0f) * notch_amount;
-					float const t = phase_ / frequency;
-					this_sample -= notch * stmlib::ThisBlepSample(t);
-					next_sample -= notch * stmlib::NextBlepSample(t);
-					this_sample += triangle_step * stmlib::ThisIntegratedBlepSample(t);
-					next_sample += triangle_step * stmlib::NextIntegratedBlepSample(t);
-					high_ = false;
-				}
-
-				next_sample += ComputeNaiveSample(
-				    phase_,
-				    pw,
-				    slope_up,
-				    slope_down,
-				    triangle_amount,
-				    notch_amount
-				);
-				previous_pw_ = pw;
-
-				*out++ = (2.0f * this_sample - 1.0f) / (1.0f + kVariableSawNotchDepth);
+			if (!high_ && phase_ >= pw) {
+				float const triangle_step = (slope_up + slope_down) * frequency * triangle_amount;
+				float const notch = (kVariableSawNotchDepth + 1.0f - pw) * notch_amount;
+				float const t = (phase_ - pw) / (previous_pw_ - pw + frequency);
+				this_sample += notch * stmlib::ThisBlepSample(t);
+				next_sample += notch * stmlib::NextBlepSample(t);
+				this_sample -= triangle_step * stmlib::ThisIntegratedBlepSample(t);
+				next_sample -= triangle_step * stmlib::NextIntegratedBlepSample(t);
+				high_ = true;
 			}
+			else if (phase_ >= 1.0f) {
+				phase_ -= 1.0f;
+				float const triangle_step = (slope_up + slope_down) * frequency * triangle_amount;
+				float const notch = (kVariableSawNotchDepth + 1.0f) * notch_amount;
+				float const t = phase_ / frequency;
+				this_sample -= notch * stmlib::ThisBlepSample(t);
+				next_sample -= notch * stmlib::NextBlepSample(t);
+				this_sample += triangle_step * stmlib::ThisIntegratedBlepSample(t);
+				next_sample += triangle_step * stmlib::NextIntegratedBlepSample(t);
+				high_ = false;
+			}
+
+			next_sample += ComputeNaiveSample(
+			    phase_,
+			    pw,
+			    slope_up,
+			    slope_down,
+			    triangle_amount,
+			    notch_amount
+			);
+			previous_pw_ = pw;
+
+			*out++ = (2.0f * this_sample - 1.0f) / (1.0f + kVariableSawNotchDepth);
 
 			next_sample_ = next_sample;
 		}

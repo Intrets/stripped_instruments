@@ -61,7 +61,6 @@ namespace plaits
 
 		float auxiliary_amount_;
 		float xmod_amount_;
-		float* temp_buffer_;
 
 		DISALLOW_COPY_AND_ASSIGN(VirtualAnalogEngine);
 	};

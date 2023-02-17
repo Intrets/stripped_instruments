@@ -46,7 +46,6 @@
 #include "plaits/dsp/engine/noise_engine.h"
 #include "plaits/dsp/engine/particle_engine.h"
 #include "plaits/dsp/engine/snare_drum_engine.h"
-#include "plaits/dsp/engine/speech_engine.h"
 #include "plaits/dsp/engine/string_engine.h"
 #include "plaits/dsp/engine/swarm_engine.h"
 #include "plaits/dsp/engine/virtual_analog_engine.h"
@@ -73,7 +72,6 @@ namespace plaits
 		}
 
 		void Init() {
-			lpg_.Init();
 			Reset();
 		}
 
@@ -81,43 +79,19 @@ namespace plaits
 			limiter_.Init();
 		}
 
-		void Process(
+		float Process(
 		    float gain,
-		    bool bypass_lpg,
-		    float low_pass_gate_gain,
-		    float low_pass_gate_frequency,
-		    float low_pass_gate_hf_bleed,
-		    float* in,
-		    short* out,
-		    size_t size,
-		    size_t stride
+		    float in
 		) {
 			if (gain < 0.0f) {
-				limiter_.Process(-gain, in, size);
+				in = limiter_.Process(-gain, in);
 			}
-			float const post_gain = (gain < 0.0f ? 1.0f : gain) * -32767.0f;
-			if (!bypass_lpg) {
-				lpg_.Process(
-				    post_gain * low_pass_gate_gain,
-				    low_pass_gate_frequency,
-				    low_pass_gate_hf_bleed,
-				    in,
-				    out,
-				    size,
-				    stride
-				);
-			}
-			else {
-				while (size--) {
-					*out = stmlib::Clip16(1 + static_cast<int32_t>(*in++ * post_gain));
-					out += stride;
-				}
-			}
+
+			return in;
 		}
 
 	private:
 		stmlib::Limiter limiter_;
-		LowPassGate lpg_;
 
 		DISALLOW_COPY_AND_ASSIGN(ChannelPostProcessor);
 	};
@@ -131,6 +105,7 @@ namespace plaits
 		float frequency_modulation_amount;
 		float timbre_modulation_amount;
 		float morph_modulation_amount;
+		float samplePeriod;
 
 		int engine;
 		float decay;
@@ -153,6 +128,8 @@ namespace plaits
 		bool morph_patched;
 		bool trigger_patched;
 		bool level_patched;
+		bool sustain;
+		bool trigger2;
 	};
 
 	class Voice
@@ -165,16 +142,14 @@ namespace plaits
 
 		struct Frame
 		{
-			short out;
-			short aux;
+			float out;
+			float aux;
 		};
 
 		void Init(stmlib::BufferAllocator* allocator);
-		void Render(
+		Frame Render(
 		    Patch const& patch,
-		    Modulations const& modulations,
-		    Frame* frames,
-		    size_t size
+		    Modulations const& modulations
 		);
 		inline int active_engine() const {
 			return previous_engine_index_;
@@ -182,29 +157,6 @@ namespace plaits
 
 	private:
 		void ComputeDecayParameters(Patch const& settings);
-
-		inline float ApplyModulations(
-		    float base_value,
-		    float modulation_amount,
-		    bool use_external_modulation,
-		    float external_modulation,
-		    bool use_internal_envelope,
-		    float envelope,
-		    float default_internal_modulation,
-		    float minimum_value,
-		    float maximum_value
-		) {
-			float value = base_value;
-			modulation_amount *= std::max(fabsf(modulation_amount) - 0.05f, 0.05f);
-			modulation_amount *= 1.05f;
-
-			float modulation = use_external_modulation
-			                       ? external_modulation
-			                       : (use_internal_envelope ? envelope : default_internal_modulation);
-			value += modulation_amount * modulation;
-			CONSTRAIN(value, minimum_value, maximum_value);
-			return value;
-		}
 
 		AdditiveEngine additive_engine_;
 		BassDrumEngine bass_drum_engine_;
@@ -216,7 +168,6 @@ namespace plaits
 		NoiseEngine noise_engine_;
 		ParticleEngine particle_engine_;
 		SnareDrumEngine snare_drum_engine_;
-		SpeechEngine speech_engine_;
 		StringEngine string_engine_;
 		SwarmEngine swarm_engine_;
 		VirtualAnalogEngine virtual_analog_engine_;
@@ -227,15 +178,6 @@ namespace plaits
 
 		int previous_engine_index_;
 		float engine_cv_;
-
-		float previous_note_;
-		bool trigger_state_;
-
-		DecayEnvelope decay_envelope_;
-		LPGEnvelope lpg_envelope_;
-
-		float trigger_delay_line_[kMaxTriggerDelay];
-		DelayLine<float, kMaxTriggerDelay> trigger_delay_;
 
 		ChannelPostProcessor out_post_processor_;
 		ChannelPostProcessor aux_post_processor_;

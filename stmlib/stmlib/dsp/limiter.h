@@ -56,6 +56,13 @@ class Limiter {
     }
   }
 
+  float Process(float pre_gain, float in) {
+    float s = in * pre_gain;
+    SLOPE(peak_, fabsf(s), 0.05f, 0.00002f);
+    float gain = (peak_ <= 1.0f ? 1.0f : 1.0f / peak_);
+    return s * gain * 0.8f;
+  }
+
  private:
   float peak_;
 

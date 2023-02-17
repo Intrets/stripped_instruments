@@ -64,134 +64,108 @@ namespace plaits
 		template<bool enable_sync>
 		void Render(
 		    float master_frequency,
-		    float frequency,
+		    float slave_frequency,
 		    float pw,
 		    float waveshape,
 		    float* out,
 		    size_t size
 		) {
-			if (master_frequency >= kMaxFrequency) {
-				master_frequency = kMaxFrequency;
-			}
-			if (frequency >= kMaxFrequency) {
-				frequency = kMaxFrequency;
-			}
-
-			if (frequency >= 0.25f) {
-				pw = 0.5f;
-			}
-			else {
-				CONSTRAIN(pw, frequency * 2.0f, 1.0f - 2.0f * frequency);
-			}
-
-			stmlib::ParameterInterpolator master_fm(
-			    &master_frequency_, master_frequency, size
-			);
-			stmlib::ParameterInterpolator fm(&slave_frequency_, frequency, size);
-			stmlib::ParameterInterpolator pwm(&pw_, pw, size);
-			stmlib::ParameterInterpolator waveshape_modulation(
-			    &waveshape_, waveshape, size
-			);
+			using math = crack::audio::StdContext;
+			pw = math::clamp(pw, slave_frequency * 2.0f, 1.0f - 2.0f * slave_frequency);
 
 			float next_sample = next_sample_;
 
-			while (size--) {
-				bool reset = false;
-				bool transition_during_reset = false;
-				float reset_time = 0.0f;
+			bool reset = false;
+			bool transition_during_reset = false;
+			float reset_time = 0.0f;
 
-				float this_sample = next_sample;
-				next_sample = 0.0f;
+			float this_sample = next_sample;
+			next_sample = 0.0f;
 
-				float const master_frequency = master_fm.Next();
-				float const slave_frequency = fm.Next();
-				float const pw = pwm.Next();
-				float const waveshape = waveshape_modulation.Next();
-				float const square_amount = std::max(waveshape - 0.5f, 0.0f) * 2.0f;
-				float const triangle_amount = std::max(1.0f - waveshape * 2.0f, 0.0f);
-				float const slope_up = 1.0f / (pw);
-				float const slope_down = 1.0f / (1.0f - pw);
+			float const square_amount = std::max(waveshape - 0.5f, 0.0f) * 2.0f;
+			float const triangle_amount = std::max(1.0f - waveshape * 2.0f, 0.0f);
+			float const slope_up = 1.0f / (pw);
+			float const slope_down = 1.0f / (1.0f - pw);
 
-				if (enable_sync) {
-					master_phase_ += master_frequency;
-					if (master_phase_ >= 1.0f) {
-						master_phase_ -= 1.0f;
-						reset_time = master_phase_ / master_frequency;
+			if constexpr (enable_sync) {
+				master_phase_ += master_frequency;
+				if (master_phase_ >= 1.0f) {
+					master_phase_ -= 1.0f;
+					reset_time = master_phase_ / master_frequency;
 
-						float slave_phase_at_reset = slave_phase_ +
-						                             (1.0f - reset_time) * slave_frequency;
-						reset = true;
-						if (slave_phase_at_reset >= 1.0f) {
-							slave_phase_at_reset -= 1.0f;
-							transition_during_reset = true;
-						}
-						if (!high_ && slave_phase_at_reset >= pw) {
-							transition_during_reset = true;
-						}
-						float value = ComputeNaiveSample(
-						    slave_phase_at_reset,
-						    pw,
-						    slope_up,
-						    slope_down,
-						    triangle_amount,
-						    square_amount
-						);
-						this_sample -= value * stmlib::ThisBlepSample(reset_time);
-						next_sample -= value * stmlib::NextBlepSample(reset_time);
+					float slave_phase_at_reset = slave_phase_ +
+					                             (1.0f - reset_time) * slave_frequency;
+					reset = true;
+					if (slave_phase_at_reset >= 1.0f) {
+						slave_phase_at_reset -= 1.0f;
+						transition_during_reset = true;
 					}
+					if (!high_ && slave_phase_at_reset >= pw) {
+						transition_during_reset = true;
+					}
+					float value = ComputeNaiveSample(
+					    slave_phase_at_reset,
+					    pw,
+					    slope_up,
+					    slope_down,
+					    triangle_amount,
+					    square_amount
+					);
+					this_sample -= value * stmlib::ThisBlepSample(reset_time);
+					next_sample -= value * stmlib::NextBlepSample(reset_time);
+				}
+			}
+
+			slave_phase_ += slave_frequency;
+			while (transition_during_reset || !reset) {
+				if (!high_) {
+					if (slave_phase_ < pw) {
+						break;
+					}
+					float t = (slave_phase_ - pw) / (previous_pw_ - pw + slave_frequency);
+					float triangle_step = (slope_up + slope_down) * slave_frequency;
+					triangle_step *= triangle_amount;
+
+					this_sample += square_amount * stmlib::ThisBlepSample(t);
+					next_sample += square_amount * stmlib::NextBlepSample(t);
+					this_sample -= triangle_step * stmlib::ThisIntegratedBlepSample(t);
+					next_sample -= triangle_step * stmlib::NextIntegratedBlepSample(t);
+					high_ = true;
 				}
 
-				slave_phase_ += slave_frequency;
-				while (transition_during_reset || !reset) {
-					if (!high_) {
-						if (slave_phase_ < pw) {
-							break;
-						}
-						float t = (slave_phase_ - pw) / (previous_pw_ - pw + slave_frequency);
-						float triangle_step = (slope_up + slope_down) * slave_frequency;
-						triangle_step *= triangle_amount;
-
-						this_sample += square_amount * stmlib::ThisBlepSample(t);
-						next_sample += square_amount * stmlib::NextBlepSample(t);
-						this_sample -= triangle_step * stmlib::ThisIntegratedBlepSample(t);
-						next_sample -= triangle_step * stmlib::NextIntegratedBlepSample(t);
-						high_ = true;
+				if (high_) {
+					if (slave_phase_ < 1.0f) {
+						break;
 					}
+					slave_phase_ -= 1.0f;
+					float t = slave_phase_ / slave_frequency;
+					float triangle_step = (slope_up + slope_down) * slave_frequency;
+					triangle_step *= triangle_amount;
 
-					if (high_) {
-						if (slave_phase_ < 1.0f) {
-							break;
-						}
-						slave_phase_ -= 1.0f;
-						float t = slave_phase_ / slave_frequency;
-						float triangle_step = (slope_up + slope_down) * slave_frequency;
-						triangle_step *= triangle_amount;
-
-						this_sample -= (1.0f - triangle_amount) * stmlib::ThisBlepSample(t);
-						next_sample -= (1.0f - triangle_amount) * stmlib::NextBlepSample(t);
-						this_sample += triangle_step * stmlib::ThisIntegratedBlepSample(t);
-						next_sample += triangle_step * stmlib::NextIntegratedBlepSample(t);
-						high_ = false;
-					}
-				}
-
-				if (enable_sync && reset) {
-					slave_phase_ = reset_time * slave_frequency;
+					this_sample -= (1.0f - triangle_amount) * stmlib::ThisBlepSample(t);
+					next_sample -= (1.0f - triangle_amount) * stmlib::NextBlepSample(t);
+					this_sample += triangle_step * stmlib::ThisIntegratedBlepSample(t);
+					next_sample += triangle_step * stmlib::NextIntegratedBlepSample(t);
 					high_ = false;
 				}
-
-				next_sample += ComputeNaiveSample(
-				    slave_phase_,
-				    pw,
-				    slope_up,
-				    slope_down,
-				    triangle_amount,
-				    square_amount
-				);
-				previous_pw_ = pw;
-
-				*out++ = (2.0f * this_sample - 1.0f);
 			}
+
+			if (enable_sync && reset) {
+				slave_phase_ = reset_time * slave_frequency;
+				high_ = false;
+			}
+
+			next_sample += ComputeNaiveSample(
+			    slave_phase_,
+			    pw,
+			    slope_up,
+			    slope_down,
+			    triangle_amount,
+			    square_amount
+			);
+			previous_pw_ = pw;
+
+			*out++ = (2.0f * this_sample - 1.0f);
 
 			next_sample_ = next_sample;
 		}

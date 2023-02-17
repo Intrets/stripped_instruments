@@ -51,6 +51,18 @@ namespace plaits
 			filter_.Init();
 		}
 
+		float Process(
+		    float gain,
+		    float frequency,
+		    float hf_bleed,
+		    float in
+		) {
+			filter_.set_f_q<stmlib::FREQUENCY_DIRTY>(frequency, 0.4f);
+			float const s = in * gain;
+			float const lp = filter_.Process<stmlib::FILTER_MODE_LOW_PASS>(s);
+			return lp + (s - lp) * hf_bleed;
+		}
+
 		void Process(
 		    float gain,
 		    float frequency,

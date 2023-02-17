@@ -32,6 +32,9 @@
 
 #include "stmlib/dsp/parameter_interpolator.h"
 
+#include <crack/audio/AudioConversions.h>
+#include <crack/audio/MathContext.h>
+
 namespace plaits
 {
 
@@ -46,15 +49,13 @@ namespace plaits
 
 		auxiliary_amount_ = 0.0f;
 		xmod_amount_ = 0.0f;
-
-		temp_buffer_ = allocator->Allocate<float>(kMaxBlockSize);
 	}
 
 	void VirtualAnalogEngine::Reset() {
 	}
 
 	float const intervals[5] = {
-		0.0f, 7.01f, 12.01f, 19.01f, 24.01f
+		0.0f, 7.0f, 12.0f, 19.0f, 24.0f
 	};
 
 	inline float Squash(float x) {
@@ -169,6 +170,7 @@ namespace plaits
 		}
 
 #elif VA_VARIANT == 2
+		using math = crack::audio::StdContext;
 
 		// 1 = variable square controlled by TIMBRE.
 		// 2 = variable saw controlled by MORPH.
@@ -177,77 +179,50 @@ namespace plaits
 
 		float const sync_amount = parameters.timbre * parameters.timbre;
 		float const auxiliary_detune = ComputeDetuning(parameters.harmonics);
-		float const primary_f = NoteToFrequency(parameters.note);
-		float const auxiliary_f = NoteToFrequency(parameters.note + auxiliary_detune);
-		float const primary_sync_f = NoteToFrequency(
-		    parameters.note + sync_amount * 48.0f
-		);
-		float const auxiliary_sync_f = NoteToFrequency(
-		    parameters.note + auxiliary_detune + sync_amount * 48.0f
-		);
+		float const primary_f = math::min(0.25f, parameters.samplePeriod * crack::audio::conversions::midiToFrequency(parameters.note, 440.0f));
+		float const auxiliary_f = math::min(0.25f, parameters.samplePeriod * crack::audio::conversions::midiToFrequency(parameters.note + auxiliary_detune, 440.0f));
+		float const primary_sync_f = math::min(0.25f, parameters.samplePeriod * crack::audio::conversions::midiToFrequency(parameters.note + sync_amount * 48.0f, 440.0f));
+		float const auxiliary_sync_f = math::min(0.25f, parameters.samplePeriod * crack::audio::conversions::midiToFrequency(parameters.note + auxiliary_detune + sync_amount * 48.0f, 440.0f));
 
-		float shape = parameters.morph * 1.5f;
-		CONSTRAIN(shape, 0.0f, 1.0f);
+		float shape = math::clamp(parameters.morph * 1.5f, 0.0f, 1.0f);
 
-		float pw = 0.5f + (parameters.morph - 0.66f) * 1.46f;
-		CONSTRAIN(pw, 0.5f, 0.995f);
+		float pw = math::clamp(0.5f + (parameters.morph - 0.66f) * 1.46f, 0.5, 0.995f);
 
 		// Render monster sync to AUX.
 		primary_.Render<true>(primary_f, primary_sync_f, pw, shape, out, size);
 		auxiliary_.Render<true>(auxiliary_f, auxiliary_sync_f, pw, shape, aux, size);
-		for (size_t i = 0; i < size; ++i) {
-			aux[i] = (aux[i] - out[i]) * 0.5f;
-		}
+		*aux = (*aux - *out) * 0.5f;
 
 		// Render double varishape to OUT.
-		float square_pw = 1.3f * parameters.timbre - 0.15f;
-		CONSTRAIN(square_pw, 0.005f, 0.5f);
+		float square_pw = math::clamp(1.3f * parameters.timbre - 0.15f, 0.005f, 0.5f);
 
-		float const square_sync_ratio = parameters.timbre < 0.5f
-		                                    ? 0.0f
-		                                    : (parameters.timbre - 0.5f) * (parameters.timbre - 0.5f) * 4.0f * 48.0f;
+		float const square_sync_ratio =
+		    parameters.timbre < 0.5f
+		        ? 0.0f
+		        : (parameters.timbre - 0.5f) * (parameters.timbre - 0.5f) * 4.0f * 48.0f;
 
 		float const square_gain = min(parameters.timbre * 8.0f, 1.0f);
 
-		float saw_pw = parameters.morph < 0.5f
-		                   ? parameters.morph + 0.5f
-		                   : 1.0f - (parameters.morph - 0.5f) * 2.0f;
-		saw_pw *= 1.1f;
-		CONSTRAIN(saw_pw, 0.005f, 1.0f);
+		float saw_pw =
+		    parameters.morph < 0.5f
+		        ? parameters.morph + 0.5f
+		        : 1.0f - (parameters.morph - 0.5f) * 2.0f;
 
-		float saw_shape = 10.0f - 21.0f * parameters.morph;
-		CONSTRAIN(saw_shape, 0.0f, 1.0f);
+		saw_pw = math::clamp(saw_pw * 1.1f, 0.005f, 1.0f);
 
-		float saw_gain = 8.0f * (1.0f - parameters.morph);
-		CONSTRAIN(saw_gain, 0.02f, 1.0f);
+		float saw_shape = math::clamp(10.0f - 21.0f * parameters.morph, 0.0f, 1.0f);
 
-		float const square_sync_f = NoteToFrequency(
-		    parameters.note + square_sync_ratio
-		);
+		float saw_gain = math::clamp(8.0f * (1.0f - parameters.morph), 0.02f, 1.0f);
 
-		sync_.Render<true>(
-		    primary_f, square_sync_f, square_pw, 1.0f, temp_buffer_, size
-		);
+		float const square_sync_f = parameters.samplePeriod * crack::audio::conversions::midiToFrequency(parameters.note + square_sync_ratio, 440.0f);
+
+		float square = 0.0f;
+		sync_.Render<true>(primary_f, square_sync_f, square_pw, 1.0f, &square, size);
 		variable_saw_.Render(auxiliary_f, saw_pw, saw_shape, out, size);
 
 		float norm = 1.0f / (std::max(square_gain, saw_gain));
 
-		ParameterInterpolator square_gain_modulation(
-		    &auxiliary_amount_,
-		    square_gain * 0.3f * norm,
-		    size
-		);
-
-		ParameterInterpolator saw_gain_modulation(
-		    &xmod_amount_,
-		    saw_gain * 0.5f * norm,
-		    size
-		);
-
-		for (size_t i = 0; i < size; ++i) {
-			out[i] = out[i] * saw_gain_modulation.Next() +
-			         square_gain_modulation.Next() * temp_buffer_[i];
-		}
+		*out = (*out * saw_gain * 0.3f + square * square_gain * 0.5f) * norm;
 
 #endif // VA_VARIANT values
 	}
