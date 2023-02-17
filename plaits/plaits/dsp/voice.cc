@@ -49,9 +49,6 @@ namespace plaits
 		engines_.RegisterInstance(&particle_engine_, false, -2.0f, 1.0f);
 		engines_.RegisterInstance(&string_engine_, true, -1.0f, 0.8f);
 		engines_.RegisterInstance(&modal_engine_, true, -1.0f, 0.8f);
-		engines_.RegisterInstance(&bass_drum_engine_, true, 0.8f, 0.8f);
-		engines_.RegisterInstance(&snare_drum_engine_, true, 0.8f, 0.8f);
-		engines_.RegisterInstance(&hi_hat_engine_, true, 0.8f, 0.8f);
 		for (int i = 0; i < engines_.size(); ++i) {
 			// All engines will share the same RAM space.
 			allocator->Free();
@@ -100,7 +97,7 @@ namespace plaits
 		    1.3f * modulations.level / (0.3f + fabsf(modulations.level)),
 		    0.0f
 		);
-		p.accent = modulations.level_patched ? compressed_level : 0.8f;
+		p.accent = compressed_level;
 		p.harmonics = math::clamp(patch.harmonics + modulations.harmonics, 0.0f, 1.0f);
 		p.note = math::clamp(patch.note, -119.0f, 120.0f);
 		p.timbre = math::clamp(patch.timbre, 0.0f, 1.0f);
